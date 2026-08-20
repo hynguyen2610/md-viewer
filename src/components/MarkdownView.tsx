@@ -1,6 +1,7 @@
 import {
   memo,
   isValidElement,
+  useCallback,
   useEffect,
   useId,
   useRef,
@@ -18,6 +19,8 @@ import type { Theme } from "../App";
 function MermaidDiagram({ chart, theme }: { chart: string; theme: Theme }) {
   const reactId = useId().replace(/:/g, "");
   const containerRef = useRef<HTMLDivElement>(null);
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const diagramRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef({ pointerId: -1, x: 0, y: 0 });
   const [svg, setSvg] = useState("");
   const [error, setError] = useState("");
@@ -25,6 +28,35 @@ function MermaidDiagram({ chart, theme }: { chart: string; theme: Theme }) {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [dragging, setDragging] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
+
+  const fitToViewport = useCallback(() => {
+    const viewport = viewportRef.current;
+    const svgElement = diagramRef.current?.querySelector("svg");
+    if (!viewport || !svgElement) return;
+
+    const viewBox = svgElement.viewBox.baseVal;
+    let chartWidth = viewBox.width;
+    let chartHeight = viewBox.height;
+    if (!chartWidth || !chartHeight) {
+      const bounds = svgElement.getBBox();
+      chartWidth = bounds.width;
+      chartHeight = bounds.height;
+    }
+    if (!chartWidth || !chartHeight) return;
+
+    svgElement.style.width = `${chartWidth}px`;
+    svgElement.style.height = `${chartHeight}px`;
+    svgElement.style.maxWidth = "none";
+
+    const availableWidth = Math.max(1, viewport.clientWidth);
+    const availableHeight = Math.max(1, viewport.clientHeight);
+    const fittedScale = Math.min(40, Math.max(
+      0.05,
+      Math.min(availableWidth / (chartWidth + 32), availableHeight / (chartHeight + 32)),
+    ));
+    setScale(fittedScale);
+    setPosition({ x: 0, y: 0 });
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -45,6 +77,17 @@ function MermaidDiagram({ chart, theme }: { chart: string; theme: Theme }) {
   }, [chart, reactId, theme]);
 
   useEffect(() => {
+    if (!svg) return;
+    const frame = window.requestAnimationFrame(fitToViewport);
+    const observer = new ResizeObserver(fitToViewport);
+    if (viewportRef.current) observer.observe(viewportRef.current);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      observer.disconnect();
+    };
+  }, [fitToViewport, svg]);
+
+  useEffect(() => {
     const handleFullscreenChange = () => {
       setFullscreen(document.fullscreenElement === containerRef.current);
     };
@@ -53,12 +96,11 @@ function MermaidDiagram({ chart, theme }: { chart: string; theme: Theme }) {
   }, []);
 
   const zoomBy = (amount: number) => {
-    setScale((current) => Math.min(40, Math.max(0.25, current + amount)));
+    setScale((current) => Math.min(40, Math.max(0.05, current + amount)));
   };
 
   const resetView = () => {
-    setScale(1);
-    setPosition({ x: 0, y: 0 });
+    fitToViewport();
   };
 
   const toggleFullscreen = async () => {
@@ -109,6 +151,7 @@ function MermaidDiagram({ chart, theme }: { chart: string; theme: Theme }) {
         </button>
       </div>
       <div
+        ref={viewportRef}
         className={`mermaid-viewport ${dragging ? "dragging" : ""}`}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
@@ -117,6 +160,7 @@ function MermaidDiagram({ chart, theme }: { chart: string; theme: Theme }) {
         onWheel={handleWheel}
       >
         <div
+          ref={diagramRef}
           className="mermaid-diagram"
           style={{ transform: `translate(${position.x}px, ${position.y}px) scale(${scale})` }}
           dangerouslySetInnerHTML={{ __html: svg }}
@@ -162,9 +206,9 @@ function MarkdownView({
   const isMermaidFile = fileName ? /\.(mmd|mermaid)$/i.test(fileName) : false;
 
   return (
-    <div className="viewer">
+    <div className={`viewer ${isMermaidFile ? "viewer-chart" : ""}`}>
       {fileName && <div className="viewer-filename">{fileName}</div>}
-      <div className="markdown-body">
+      <div className={`markdown-body ${isMermaidFile ? "markdown-body-chart" : ""}`}>
         {isMermaidFile ? <MermaidDiagram chart={content} theme={theme} /> : <ReactMarkdown
           remarkPlugins={[remarkGfm]}
           rehypePlugins={[[rehypeHighlight, { plainText: ["mermaid"] }]]}

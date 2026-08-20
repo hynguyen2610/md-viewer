@@ -211,6 +211,37 @@ body {
   font-size: 15.5px;
 }
 
+.viewer-chart {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.viewer-chart .viewer-filename {
+  flex: none;
+}
+
+.markdown-body-chart {
+  display: flex;
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  max-width: none;
+  padding: 16px 32px 32px;
+}
+
+.markdown-body-chart > .mermaid-container {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  margin: 0;
+}
+
+.markdown-body-chart .mermaid-viewport {
+  min-height: 0;
+}
+
 .markdown-body h1,
 .markdown-body h2,
 .markdown-body h3,
