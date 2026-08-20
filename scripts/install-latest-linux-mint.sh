@@ -15,7 +15,6 @@ done
 
 case "$(uname -m)" in
   x86_64) deb_arch="amd64" ;;
-  aarch64 | arm64) deb_arch="arm64" ;;
   *) fail "unsupported CPU architecture: $(uname -m)" ;;
 esac
 
@@ -43,6 +42,7 @@ package_path="$tmp_dir/md-viewer.deb"
 echo "Finding the latest stable md-viewer release for ${deb_arch}..."
 curl --fail --silent --show-error --location \
   --retry 3 \
+  --header "User-Agent: md-viewer-linux-mint-installer" \
   --header "Accept: application/vnd.github+json" \
   --header "X-GitHub-Api-Version: 2022-11-28" \
   "$API_URL" \
@@ -59,6 +59,7 @@ asset_url="$({
 echo "Downloading ${asset_url##*/}..."
 curl --fail --silent --show-error --location \
   --retry 3 \
+  --header "User-Agent: md-viewer-linux-mint-installer" \
   "$asset_url" \
   --output "$package_path"
 chmod 644 "$package_path"

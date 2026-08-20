@@ -100,13 +100,15 @@ curl -fsSLO https://raw.githubusercontent.com/hynguyen2610/md-viewer/main/script
 bash install-latest-linux-mint.sh
 ```
 
-The script detects `amd64` or `arm64`, downloads the matching `.deb` from the
-latest stable GitHub release, validates the package name and architecture, and
-uses `apt-get` to install it. It prompts for your `sudo` password when needed.
+The script verifies the machine is `amd64`, downloads the matching `.deb` from
+the latest stable GitHub release, validates the package name and architecture,
+and uses `apt-get` to install it. It prompts for your `sudo` password when
+needed.
 
-> This requires the GitHub repository to have a stable release containing a
-> package named like `md-viewer_<version>_amd64.deb` or
-> `md-viewer_<version>_arm64.deb`.
+Every push to `main` triggers `.github/workflows/release-linux.yml`. The
+workflow builds an `amd64` Debian package on Ubuntu 22.04 and publishes it as
+the latest stable GitHub release. The installer above automatically picks up
+that package after the workflow completes.
 
 ## 3. Run it in dev mode
 
