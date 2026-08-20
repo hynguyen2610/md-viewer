@@ -5,7 +5,9 @@ files in a sidebar tree, click one to render it (GitHub-flavored Markdown,
 tables, code highlighting). Built with **Tauri 2** (Rust) + **React 18** +
 **TypeScript**.
 
-## 1. Install prerequisites on Linux Mint
+## 1. Install platform prerequisites
+
+### Linux Mint
 
 Tauri needs the system WebKitGTK stack, build tools, Rust, and Node.
 
@@ -40,6 +42,47 @@ cargo install tauri-cli --version "^2"
 > `apt search webkit2gtk` and use whatever `4.0`/`4.1` dev package your
 > release ships.
 
+### Windows 10 or 11
+
+Install the following tools:
+
+1. [Microsoft C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/).
+   In the installer, select **Desktop development with C++**.
+2. [Microsoft Edge WebView2 Runtime](https://developer.microsoft.com/microsoft-edge/webview2/).
+   It is already included with most current Windows installations.
+3. [Rust](https://www.rust-lang.org/tools/install). Run `rustup-init.exe` and
+   keep the default MSVC toolchain.
+4. [Node.js](https://nodejs.org/) 18 or newer (the current LTS release is
+   recommended).
+
+After installation, open a new PowerShell window and verify the toolchain:
+
+```powershell
+rustc --version
+cargo --version
+node --version
+npm --version
+```
+
+### macOS
+
+Install Apple's command-line developer tools, then install Rust and Node.js:
+
+```bash
+xcode-select --install
+
+# Rust
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+source "$HOME/.cargo/env"
+
+# Node.js 18+ with Homebrew
+brew install node
+```
+
+If Homebrew is not installed, install Node.js from
+[nodejs.org](https://nodejs.org/) instead. Building requires macOS 10.13 or
+newer.
+
 ## 2. Install JS dependencies
 
 ```bash
@@ -64,8 +107,31 @@ will show up in the tree.
 npm run tauri build
 ```
 
-Output binaries/installers land in `src-tauri/target/release/bundle/`
-(an `.AppImage` and a `.deb` on Linux).
+Output binaries and installers land in `src-tauri/target/release/bundle/`:
+
+| Platform | Typical output |
+| --- | --- |
+| Linux | `.deb`, `.rpm`, and `.AppImage` |
+| Windows | `.msi` and NSIS `.exe` installer |
+| macOS | `.app` bundle and `.dmg` disk image |
+
+Build on the target operating system: create Windows installers on Windows,
+macOS packages on macOS, and Linux packages on Linux.
+
+### Install a local release
+
+On Linux Mint, install the generated Debian package:
+
+```bash
+sudo apt install "$(pwd)"/src-tauri/target/release/bundle/deb/md-viewer_*_amd64.deb
+```
+
+On Windows, open the generated `.msi` or setup `.exe` and follow the installer.
+
+On macOS, open the generated `.dmg`, then drag **md-viewer** into
+**Applications**. Locally built, unsigned packages may require
+**Control-click → Open** the first time. Public distribution requires Apple
+code signing and notarization.
 
 ## How it's structured
 
