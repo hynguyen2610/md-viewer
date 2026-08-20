@@ -91,6 +91,23 @@ cd md-viewer
 npm install
 ```
 
+### Install the latest stable release on Linux Mint
+
+Download the installer script from this repository and run it:
+
+```bash
+curl -fsSLO https://raw.githubusercontent.com/hynguyen2610/md-viewer/main/scripts/install-latest-linux-mint.sh
+bash install-latest-linux-mint.sh
+```
+
+The script detects `amd64` or `arm64`, downloads the matching `.deb` from the
+latest stable GitHub release, validates the package name and architecture, and
+uses `apt-get` to install it. It prompts for your `sudo` password when needed.
+
+> This requires the GitHub repository to have a stable release containing a
+> package named like `md-viewer_<version>_amd64.deb` or
+> `md-viewer_<version>_arm64.deb`.
+
 ## 3. Run it in dev mode
 
 ```bash
