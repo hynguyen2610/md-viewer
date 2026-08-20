@@ -19,7 +19,7 @@ fn main() {
 
 - [x] Pick a folder
 - [x] Render this file
-- [ ] Open `guides/setup.md` next
+- [ ] Open [guides/setup.md](guides/setup.md) next
 
 ## Table
 

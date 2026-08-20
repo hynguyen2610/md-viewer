@@ -6,6 +6,7 @@ import {
   useRef,
   useState,
   type PointerEvent as ReactPointerEvent,
+  type MouseEvent,
   type WheelEvent,
 } from "react";
 import ReactMarkdown from "react-markdown";
@@ -131,6 +132,7 @@ interface MarkdownViewProps {
   loading: boolean;
   error: string | null;
   theme: Theme;
+  onOpenMarkdownLink: (href: string) => void;
 }
 
 function MarkdownView({
@@ -139,6 +141,7 @@ function MarkdownView({
   loading,
   error,
   theme,
+  onOpenMarkdownLink,
 }: MarkdownViewProps) {
   if (loading) {
     return <div className="viewer-status">Loading…</div>;
@@ -166,6 +169,18 @@ function MarkdownView({
           remarkPlugins={[remarkGfm]}
           rehypePlugins={[[rehypeHighlight, { plainText: ["mermaid"] }]]}
           components={{
+            a({ href, children, ...props }) {
+              const isMarkdownLink = href
+                && !/^[a-z][a-z\d+.-]*:/i.test(href)
+                && /\.(?:md|markdown|mdx|mmd|mermaid)(?:[?#]|$)/i.test(href);
+              const handleClick = (event: MouseEvent<HTMLAnchorElement>) => {
+                if (!isMarkdownLink || event.button !== 0 || event.metaKey
+                  || event.ctrlKey || event.shiftKey || event.altKey) return;
+                event.preventDefault();
+                onOpenMarkdownLink(href);
+              };
+              return <a href={href} onClick={handleClick} {...props}>{children}</a>;
+            },
             pre({ children, ...props }) {
               if (isValidElement(children) && children.type === MermaidDiagram) {
                 return children;

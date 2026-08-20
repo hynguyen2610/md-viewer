@@ -94,6 +94,21 @@ export default function App() {
     }
   }, []);
 
+  const handleMarkdownLink = useCallback(async (href: string) => {
+    if (!selectedPath) return;
+
+    setError(null);
+    try {
+      const path = await invoke<string>("resolve_markdown_link", {
+        currentPath: selectedPath,
+        href,
+      });
+      await handleSelectFile(path);
+    } catch (e) {
+      setError(`Could not open linked file: ${String(e)}`);
+    }
+  }, [handleSelectFile, selectedPath]);
+
   const fileName = selectedPath ? selectedPath.split(/[\\/]/).pop() ?? null : null;
 
   return (
@@ -115,6 +130,7 @@ export default function App() {
           loading={loading}
           error={error}
           theme={theme}
+          onOpenMarkdownLink={handleMarkdownLink}
         />
       </main>
     </div>

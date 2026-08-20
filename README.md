@@ -2,7 +2,8 @@
 
 A small desktop Markdown viewer: pick a folder, browse its `.md` / `.markdown`
 files in a sidebar tree, click one to render it (GitHub-flavored Markdown,
-tables, code highlighting). Built with **Tauri 2** (Rust) + **React 18** +
+tables, code highlighting). Relative links to other Markdown files open
+directly in the viewer. Built with **Tauri 2** (Rust) + **React 18** +
 **TypeScript**.
 
 ## 1. Install platform prerequisites

@@ -119,6 +119,41 @@ fn read_file_content(path: String) -> Result<String, String> {
 }
 
 #[tauri::command]
+fn resolve_markdown_link(current_path: String, href: String) -> Result<String, String> {
+    let link_path = href
+        .split(['#', '?'])
+        .next()
+        .filter(|path| !path.is_empty())
+        .ok_or_else(|| "Link does not point to a file".to_string())?;
+
+    let decoded = percent_encoding::percent_decode_str(link_path)
+        .decode_utf8()
+        .map_err(|_| "Link contains invalid UTF-8".to_string())?;
+    let linked = Path::new(decoded.as_ref());
+    let resolved = if linked.is_absolute() {
+        linked.to_path_buf()
+    } else {
+        Path::new(&current_path)
+            .parent()
+            .ok_or_else(|| "Current file has no parent directory".to_string())?
+            .join(linked)
+    };
+
+    if !is_viewable_file(&resolved) {
+        return Err("Link is not a supported Markdown file".to_string());
+    }
+
+    let canonical = resolved
+        .canonicalize()
+        .map_err(|e| format!("{}: {}", resolved.display(), e))?;
+    if !canonical.is_file() {
+        return Err(format!("{} is not a file", canonical.display()));
+    }
+
+    Ok(canonical.to_string_lossy().to_string())
+}
+
+#[tauri::command]
 fn git_file_statuses(path: String) -> Result<Vec<GitFileStatus>, String> {
     let root = Path::new(&path);
     let output = Command::new("git")
@@ -180,6 +215,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             read_dir_tree,
             read_file_content,
+            resolve_markdown_link,
             git_file_statuses
         ])
         .run(tauri::generate_context!())
